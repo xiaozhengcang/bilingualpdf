@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plugin Chat Sidebar</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="flex flex-row bg-gray-200 h-screen min-h-0 w-full overflow-hidden text-xs">
+  <!-- Main Content Area -->
+  <div id="mainPanel" class="flex flex-col flex-1 min-h-0 p-4 overflow-hidden text-xs">
+    <div class="mb-2">
+      <select id="modelSelect" class="border rounded-md p-2 text-xs">
+        <option value="gpt-4o-mini">gpt-4o-mini</option>
+        <option value="gpt-4o">gpt-4o</option>
+        <option value="gpt-4.1">gpt-4.1</option>
+      </select>
+    </div>
+    <div id="resultContainer" class="flex-1 min-h-0 bg-gray-100 rounded-lg overflow-y-auto mb-4 p-4 text-xs">
+      <p id="resultText" class="whitespace-pre-line text-xs"></p>
+      <div id="chatbox" class="text-xs"></div>
+    </div>
+    <div class="flex items-center gap-2 mt-2">
+      <textarea id="promptInput" class="flex-1 border rounded-md p-3 resize-none min-h-[40px] max-h-32 text-xs" placeholder="Input..." rows="1"></textarea>
+      <button id="generateBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md whitespace-nowrap text-xs">Send</button>
+      <button id="stopBtn" class="bg-yellow-500 text-white px-4 py-2 rounded-md whitespace-nowrap text-xs">Clear</button>
+    </div>
+  </div>
+  <!-- Placeholder panels for other commands -->
+  <div id="inspectPanel" class="flex-1 hidden flex flex-col text-gray-600 text-xs overflow-hidden">
+    <div class="w-full flex flex-col gap-4 p-4 flex-1 min-h-0">
+      <div class="flex flex-row flex-nowrap items-start justify-start gap-2 mb-2">
+        <button id="fileBtn" class="bg-blue-500 text-white w-44 h-8 rounded-md text-xs flex items-center justify-center">Open File</button>
+        <button id="pageSummaryBtn" class="bg-yellow-500 text-white w-44 h-8 rounded-md text-xs flex items-center justify-center">Summarize Page</button>
+        <button id="fullTranslateBtn" class="bg-green-500 text-white w-44 h-8 rounded-md text-xs flex items-center justify-center">Translate Page</button>
+        <button id="toggleSelectedTextBtn" class="bg-gray-500 text-white w-44 h-8 rounded-md text-xs flex items-center justify-center">Show Selected</button>
+        <label for="fontSizeSlider" class="ml-4 text-xs text-gray-700">Font Size</label>
+        <input id="fontSizeSlider" type="range" min="8" max="32" value="10" class="mx-2" style="width: 100px;">
+        <span id="fontSizeValue" class="text-xs text-gray-700">10</span>
+      </div>
+      <div id="selectedTextContainer" style="display:none;">
+        <label for="selectedTextArea" class="w-full text-left text-xs text-gray-700">Selected Text</label>
+        <textarea id="selectedTextArea" rows="3" class="w-full border rounded-md p-3 min-h-[160px] max-h-[320px] resize-none bg-white text-gray-800 text-xs" placeholder="Selected text from the page will appear here..." readonly></textarea>
+      </div>
+      <label for="summaryArea" class="w-full text-left text-xs text-gray-700">Summary</label>
+      <div id="summaryArea" class="w-full flex-1 min-h-[160px] max-h-full border rounded-md p-3 bg-white text-gray-800 text-xs overflow-auto" style="white-space:normal; line-height:1.5;" placeholder="Summary will appear here..."></div>
+    </div>
+  </div>
+  <div id="thirdPanel" class="flex-1 hidden flex flex-col items-center justify-center text-gray-600 text-xs overflow-hidden">
+    <form id="settingsForm" class="w-full max-w-xs bg-white p-4 rounded shadow flex flex-col gap-4">
+      <h2 class="text-lg font-bold mb-2">Settings</h2>
+      <label class="flex flex-col text-xs">API URL
+        <input id="apiUrlInput" type="text" class="border rounded p-2 mt-1 text-xs" placeholder="https://api.openai.com/v1/chat/completions" />
+      </label>
+      <label class="flex flex-col text-xs">API Key
+        <input id="apiKeyInput" type="password" class="border rounded p-2 mt-1 text-xs" placeholder="Your API Key" />
+      </label>
+      <label class="flex flex-col text-xs">Model Name
+        <input id="modelNameInput" type="text" class="border rounded p-2 mt-1 text-xs" placeholder="gpt-4o-mini (default)" />
+      </label>
+      <label class="flex flex-col text-xs">Target Language
+        <input id="targetLanguageInput" type="text" class="border rounded p-2 mt-1 text-xs" placeholder="Chinese (default)" />
+      </label>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md text-xs">Save</button>
+      <span id="settingsSavedMsg" class="text-green-600 text-xs hidden">Saved!</span>
+    </form>
+  </div>
+  <!-- Command Panel (moved to right) -->
+  <div class="flex flex-col justify-start items-center bg-gray-300 w-10 py-4 space-y-2 border-l border-gray-400">
+    <button class="command-btn bg-gray-400 text-white w-10 h-10 rounded flex items-center justify-center" data-panel="inspect" id="cmd-inspect" title="Inspect">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+        <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="command-btn bg-blue-500 text-white w-10 h-10 rounded flex items-center justify-center" data-panel="main" id="cmd-main" title="Chat">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 21l1.8-4A7.963 7.963 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+    </button>
+    <button class="command-btn bg-gray-700 text-white w-10 h-10 rounded flex items-center justify-center mt-auto" data-panel="third" id="cmd-settings" title="Settings">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
+      </svg>
+    </button>
+  </div>
+  <script src="marked.min.js"></script>
+  <script src="chat.js"></script>
+  <script src="inspectPanel.js"></script>
+  <script src="sidebarPanel.js"></script>
+</body>
+</html> 

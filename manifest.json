@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "BilingualPDF",
+  "version": "1.0",
+  "description": "Read PDF with bilingual via a Chrome extension,useful for technical paper reading.",
+  "permissions": ["storage", "activeTab", "sidePanel", "tabs"],
+  "action": {
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "mathjax/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["sidebar.js", "contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Toggle the sidebar"
+    }
+  }
+} 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Custom PDF Viewer</title>
+  <style>
+    #container {
+      position: relative;
+      display: inline-block;
+      /* width and height will be set dynamically by JS to match PDF page */
+    }
+    #pdf-canvas {
+      display: block;
+      border: 1px solid #ccc;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #textLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+      /* Optional: background for debugging */
+      /* background: rgba(255,255,0,0.05); */
+    }
+    #container > div > div {
+      color: transparent;
+    }
+    #container > div > div span {
+      color: inherit;
+    }
+    .textLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      color: transparent;
+      line-height: 1;
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 2;
+    }
+    .textLayer span {
+      color: transparent !important;
+      background: transparent !important;
+      position: absolute;
+      white-space: pre;
+      cursor: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+    .textLayer span::selection {
+      color: black !important;
+      background: #b3d4fc !important;
+    }
+    .textLayer span::-moz-selection {
+      color: black !important;
+      background: #b3d4fc !important;
+    }
+  </style>
+</head>
+<body>
+  <input type="file" id="file-input" accept="application/pdf" />
+  <div id="container"></div>
+  <script src="pdfjs/pdf.js"></script>
+  <script src="pdf_viewer.js"></script>
+</body>
+</html> 
