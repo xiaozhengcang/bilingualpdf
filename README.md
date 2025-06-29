@@ -115,4 +115,4 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 
 ## Disclaimer
 
-BilingualPDF is provided as-is, without warranty of any kind. Use at your own risk. Always review and comply with the terms of service for any third-party APIs you use with this extension.
+BilingualPDF is a pure vibe coding product and it provided as-is, without warranty of any kind. Use at your own risk. Always review and comply with the terms of service for any third-party APIs you use with this extension.
