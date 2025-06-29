@@ -22,7 +22,7 @@ BilingualPDF is a Chrome extension designed to help users read and understand PD
 1. **Clone or Download** this repository to your local machine.
 2. **Open Chrome** and navigate to `chrome://extensions/`.
 3. **Enable Developer Mode** (top right corner).
-4. **Click "Load unpacked"** and select the `plugin_chat` directory.
+4. **Click "Load unpacked"** and select the `bilingualpdf` directory.
 5. The BilingualPDF extension icon should appear in your Chrome toolbar.
 
 ---
@@ -42,7 +42,7 @@ BilingualPDF is a Chrome extension designed to help users read and understand PD
 
 - **API URL**: Set the endpoint for the OpenAI-compatible API.
 - **API Key**: Enter your API key for authentication.
-- **Model**: Choose the language model (e.g., `gpt-3.5-turbo`).
+- **Model**: Choose the language model (e.g., `gpt-4o-mini`).
 - **Target Language**: Set your preferred output language (default: Chinese).
 
 All settings are accessible via the sidebar's Settings panel.

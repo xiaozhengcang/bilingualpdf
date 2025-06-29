@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
   const API_URL = localStorage.getItem('API_URL') || '';
   const API_KEY = localStorage.getItem('API_KEY') || '';
   const chatHistory = [];
-  const modelSelect = document.getElementById('modelSelect');
+  const modelNameDisplay = document.getElementById('modelNameValue');
+  const storedModelName = localStorage.getItem('MODEL_NAME') || 'gpt-4o-mini';
+  if (modelNameDisplay) modelNameDisplay.textContent = storedModelName;
 
   generateBtn.addEventListener('click', async function () {
     const userInput = promptInput.value.trim();
@@ -23,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
       promptInput.value = '';
       chatbox.scrollTop = chatbox.scrollHeight;
       try {
-        const selectedModel = modelSelect ? modelSelect.value : 'gpt-4o-mini';
+        const selectedModel = storedModelName;
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: {

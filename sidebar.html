@@ -11,11 +11,7 @@
   <!-- Main Content Area -->
   <div id="mainPanel" class="flex flex-col flex-1 min-h-0 p-4 overflow-hidden text-xs">
     <div class="mb-2">
-      <select id="modelSelect" class="border rounded-md p-2 text-xs">
-        <option value="gpt-4o-mini">gpt-4o-mini</option>
-        <option value="gpt-4o">gpt-4o</option>
-        <option value="gpt-4.1">gpt-4.1</option>
-      </select>
+      <span id="modelNameDisplay" class="border rounded-md p-2 text-xs bg-gray-50">Model: <span id="modelNameValue"></span></span>
     </div>
     <div id="resultContainer" class="flex-1 min-h-0 bg-gray-100 rounded-lg overflow-y-auto mb-4 p-4 text-xs">
       <p id="resultText" class="whitespace-pre-line text-xs"></p>
