@@ -72,5 +72,14 @@
   <div id="container"></div>
   <script src="pdfjs/pdf.js"></script>
   <script src="pdf_viewer.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      // Automatically trigger file input when the viewer loads
+      const fileInput = document.getElementById('file-input');
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+  </script>
 </body>
 </html> 

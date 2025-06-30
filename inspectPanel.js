@@ -4,11 +4,25 @@ function attachInspectPanelListeners() {
   // No need to fetch selected text here; contentScript.js will send updates
 }
 
-// Optionally, attach on DOMContentLoaded if panel is visible
+// Initialize markdown-it with texmath for math-aware markdown rendering
+let md;
+function waitForMarkdownItAndInit() {
+  if (window.markdownit && window.markdownitTexmath) {
+    md = window.markdownit().use(window.markdownitTexmath, {
+      engine: window.MathJax,
+      delimiters: 'dollars',
+    });
+    attachInspectPanelListeners();
+  } else {
+    setTimeout(waitForMarkdownItAndInit, 50);
+  }
+}
+
+// Use waitForMarkdownItAndInit instead of waitForMarkedAndInit
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', attachInspectPanelListeners);
+  document.addEventListener('DOMContentLoaded', waitForMarkdownItAndInit);
 } else {
-  attachInspectPanelListeners();
+  waitForMarkdownItAndInit();
 }
 
 // Expose for sidebar.html inline script
@@ -21,11 +35,23 @@ function getModelName() {
   return localStorage.getItem('MODEL_NAME')?.trim() || 'gpt-4o-mini';
 }
 
+// Warn if Marked.js is missing
+if (!window.marked) {
+  console.warn('Marked.js is not loaded! Markdown rendering will not work.');
+} else {
+  console.log('Marked.js loaded:', typeof window.marked);
+}
+
 // Add logic for Page Summary button
 function streamLLMResult({prompt, systemPrompt, button, summaryArea, selectedTextArea, buttonLabel}) {
   button.disabled = true;
   button.textContent = 'Loading...';
-  summaryArea.innerHTML = '';
+
+  // Create a new <p> for the response, like the sample
+  let responseP = document.createElement('p');
+  responseP.setAttribute('class', 'whitespace-pre-line');
+  summaryArea.appendChild(responseP);
+
   const API_URL = localStorage.getItem('API_URL') || '';
   const API_KEY = localStorage.getItem('API_KEY') || '';
   const model = getModelName();
@@ -37,7 +63,9 @@ function streamLLMResult({prompt, systemPrompt, button, summaryArea, selectedTex
     ],
     stream: true
   });
-  let reply = '';
+
+  let bot_response = '';
+
   fetch(API_URL, {
     method: 'POST',
     headers: {
@@ -49,42 +77,45 @@ function streamLLMResult({prompt, systemPrompt, button, summaryArea, selectedTex
     if (!res.ok || !res.body) throw new Error('Network error');
     const reader = res.body.getReader();
     const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-    let done = false;
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      if (value) {
-        buffer += decoder.decode(value, { stream: true });
-        let lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (let line of lines) {
-          line = line.trim();
-          if (!line) continue;
-          if (line.startsWith('data:')) line = line.slice(5).trim();
-          if (line === '[DONE]') continue;
-          try {
-            const data = JSON.parse(line);
-            const content = data.choices?.[0]?.delta?.content;
-            if (content) {
-              reply += content;
-              summaryArea.innerHTML = window.marked.parse(reply);
-              if (window.MathJax && window.MathJax.typesetPromise) {
-                window.MathJax.typesetPromise([summaryArea]);
-              }
-            }
-          } catch (e) {
-            // ignore parse errors
-          }
-        }
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
       }
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      printLines(lines);
+    }
+    // After stream is done, render markdown and math
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([responseP]);
     }
   }).catch(e => {
-    summaryArea.innerHTML = '[Error: ' + (e.message || e) + ']';
+    responseP.innerText = '[Error: ' + (e.message || e) + ']';
   }).finally(() => {
     button.disabled = false;
     button.textContent = buttonLabel;
   });
+
+  function printLines(lines) {
+    lines
+      .map(line => line.replace(/^data: /, '').trim())
+      .filter(line => line !== '' && line !== '[DONE]')
+      .forEach(line => {
+        try {
+          const data = JSON.parse(line);
+          const content = data.choices?.[0]?.delta?.content;
+          if (content) {
+            bot_response += content;
+            // Show as plain text during streaming
+            responseP.innerText = bot_response;
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+      });
+  }
 }
 
 // Helper: Check if PDF viewer is active (implement your own logic)
@@ -192,10 +223,10 @@ function setupFullTranslateButton() {
       return;
     }
     selectedTextArea.value = pageText;
-    summaryArea.innerHTML = 'Translating...';
+    summaryArea.innerHTML = '';
     streamLLMResult({
       prompt: `Translate the following content into fluent ${targetLanguage}, preserving the original meaning and details\n\n${pageText}`,
-      systemPrompt: `You are a helpful assistant that translates documents into ${targetLanguage}. rule 1: output the summary only without any greeting or introduction. rule 2: use both original and target language if the word is a terminology, rule 3: make the output with proper markdown format for better reading `,
+      systemPrompt: `You are a helpful assistant that translates documents into ${targetLanguage}. ***rule 1***: output the summary only without any greeting or introduction. ***rule 2***: use both original and target language if the word is a terminology; ***rule 3***: important! make the output with proper markdown format for better reading `,
       button: fullTranslateBtn,
       summaryArea,
       selectedTextArea,
